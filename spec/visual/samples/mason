@@ -1,0 +1,109 @@
+<%doc>
+    This is a mason component.
+</%doc>
+
+<%args>
+    $color         # this argument is required!
+    $size => 20    # default size
+    $country => undef   # this argument is optional, defalt value is 'undef'
+    @items => (1, 2, 'something else')
+    %pairs => (name => "John", age => 29)
+</%args>
+
+<%flags>
+    inherit => "page-framework.mi"
+</%flags>
+
+<%attr>
+author => 'maria ines parnisari'
+</%attr>
+
+<%once>
+    $Schema = Apprentice::Data->$schema;
+</%once>
+
+<%shared>
+    my $shared_var = 25;
+</%shared>
+
+<%init>
+    my $cookies = Apache::Cookie->fetch;
+</%init>
+
+# A random block of Perl code
+<%perl>
+    my @people = ('mary' 'john' 'pete' 'david');
+</%perl>
+
+# Note how each line of code begins with the mandatory %
+% foreach my $person (@people) {
+    Name: <% $person %>
+% }
+
+            % this is not perl code
+
+Here at wally world you will find all the finest accoutrements.
+
+What follows is a table.
+
+% my @array = qw(zero one two);
+
+<table>
+%       foreach my $row (0..$#array) {
+            <tr>
+                <td><% $row          %></td>
+                <td><% $array[$row]  %></td>
+            </tr>
+%        }
+</table>
+
+# These are all component calls
+<& path/to/component &>
+<& $component &>
+<& menu, width => 100, height => 200 &>
+
+# Special globals $m and $r
+%   my $result = $m->base_comp;
+%   my $apache = $r->name;
+
+# a nice PRIVATE subcomponent that renders a hyperlink
+<%def .make_a_link>
+    <a href="<% url %>"> <% text %></a>
+<%args>
+    $path
+    %query => ()
+    $text
+</%args>
+<%init>
+    my $url = $path;
+    if (scalar (keys %query) > 0) {
+        $url = $url . "?"
+    }
+    foreach my $queryParam (keys %query) {
+        $url = $url . $queryParam . "=" . $query{$queryParam} . "&";
+    }
+</%init>
+<%perl>
+    <a href="<% url %>"> <% text %></a>
+</%perl>
+</%def>
+
+<%method getPublic>
+%    my $text = "hello world";
+<b><% text %></b>
+</%method>
+
+<%text>
+# This is not interpreted and is printed as is
+%   my $variable = "hello";
+</%text>
+
+# This code runs at the very end of the component
+<%filter>
+    s/(\w+)/\U$1/g #uppercase the entire thing
+</%filter>
+
+<%cleanup>
+# This runs at the end.
+    $db->disconnect();
+</%cleanup>
