@@ -13,7 +13,7 @@
 # A random block of Perl code
 <%perl>
     my @people = ('mary' 'john' 'pete' 'david');
-<%perl>
+</%perl>
 
 # Note how each line of code begins with the mandatory %
 % foreach my $person (@people) {
