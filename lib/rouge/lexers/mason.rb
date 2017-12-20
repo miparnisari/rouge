@@ -20,131 +20,67 @@ module Rouge
           return true if text.doctype?
         end
 
-        blocks = %w(
-            cleanup doc args flags attr once shared init perl text filter
+        textblocks = %w(
+            doc text
         )
 
-        subcomponents = %w(
+        perlblocks = %w(
+            args flags attr init once shared perl cleanup filter
+        )
+
+        components = %w(
             def method
         )
   
         state :root do
 
-            # Comments
+            ### Perl specific syntax
+
+            rule /^%(.*)$/ do |m|
+                token Operator, '%'
+                delegate @perl, m[1]
+            end
+
             rule /^#.*?$/, Comment::Single
 
-            # doc block
-            rule /(<%doc>)([^<]*)(<\/%doc>)/ do |m|
+            # uninterpreted blocks
+            rule /(<%(#{textblocks.join('|')})>)([^<]*)(<\/%\2>)/ do |m|
                 token Keyword::Constant, m[1]
-                token Text, m[2]
-                token Keyword::Constant, m[3]
+                token Text, m[3]
+                token Keyword::Constant, m[4]
             end
 
-            # text block (not interpreted)
-            rule /(<%text>)([^<]*)(<\/%text>)/ do |m|
+            # perl blocks
+            rule /(<%(#{perlblocks.join('|')})>)([^<]*)(<\/%\2>)/ do |m|
                 token Keyword::Constant, m[1]
-                token Text, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # args block
-            rule /(<%args>)([^<]*)(<\/%args>)/ do |m|
-                token Keyword::Constant, m[1]
-                delegate @perl, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # flags block
-            rule /(<%flags>)([^<]*)(<\/%flags>)/ do |m|
-                token Keyword::Constant, m[1]
-                delegate @perl, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # attr block
-            rule /(<%attr>)([^<]*)(<\/%attr>)/ do |m|
-                token Keyword::Constant, m[1]
-                delegate @perl, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # init block
-            rule /(<%init>)([^<]*)(<\/%init>)/ do |m|
-                token Keyword::Constant, m[1]
-                delegate @perl, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # once block
-            rule /(<%once>)([^<]*)(<\/%once>)/ do |m|
-                token Keyword::Constant, m[1]
-                delegate @perl, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # shared block
-            rule /(<%shared>)([^<]*)(<\/%shared>)/ do |m|
-                token Keyword::Constant, m[1]
-                delegate @perl, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # perl block
-            rule /(<%perl>)([^<]*)(<\/%perl>)/ do |m|
-                token Keyword::Constant, m[1]
-                delegate @perl, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # cleanup block
-            rule /(<%cleanup>)([^<]*)(<\/%cleanup>)/ do |m|
-                token Keyword::Constant, m[1]
-                delegate @perl, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # filter block
-            rule /(<%filter>)([^<]*)(<\/%filter>)/ do |m|
-                token Keyword::Constant, m[1]
-                delegate @perl, m[2]
-                token Keyword::Constant, m[3]
-            end
-
-            # def block
-            rule /(<%def([^>]*)>)([^<]*)(<\/%def>)/ do |m|
-                token Keyword::Constant, m[1]
-                token Keyword::Type, m[2]
                 delegate @perl, m[3]
                 token Keyword::Constant, m[4]
             end
 
-            # method block
-            rule /(<%method([^>]*)>)([^<]*)(<\/%method>)/ do |m|
+            # component blocks
+            rule /(<%(#{components.join('|')})[^>]*>)(.*)(<\/%\2>)/m do |m|
                 token Keyword::Constant, m[1]
-                token Keyword::Type, m[2]
                 delegate @perl, m[3]
                 token Keyword::Constant, m[4]
             end
 
-            # component call
+            ### Mason specific syntax
+
+            # component calls
             rule /(<&)(.*)(&>)/ do |m|
                 token Keyword::Constant, m[1]
                 token Text, m[2]
                 token Keyword::Constant, m[3]
             end
 
-            # component substitution
+            # component substitutions
             rule /(<%)(.*)(%>)/ do |m|
                 token Keyword::Constant, m[1]
                 delegate @perl, m[2]
                 token Keyword::Constant, m[3]
             end
 
-            rule /^%.*/ do
-                delegate @perl
-            end
-
-            rule /.*/ do
+            rule /^.*$/ do
                 delegate @html
             end
         end
