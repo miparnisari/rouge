@@ -6,13 +6,13 @@ module Rouge
         title "Mason"
         desc %q(<desc for="this-lexer">Mason</desc>)
         tag 'mason'
-        filenames '*.mi', '*.m'
+        filenames '*.mi', '*.mc', '*.mas', '*.mhtml', '*.mcomp', "autohandler", "dhandler"
         mimetypes 'text/x-mason', 'application/x-mason'
 
         def initialize(*)
             super
-            @perl = Perl.new(options)
-            @html = HTML.new(options)
+            @perl = Perl.new()
+            @html = HTML.new()
           end
   
         def self.detect?(text)
@@ -60,7 +60,7 @@ module Rouge
             # component blocks
             rule /(<%(#{components.join('|')})[^>]*>)(.*)(<\/%\2>)/m do |m|
                 token Keyword::Constant, m[1]
-                delegate @perl, m[3]
+                delegate @perl, m[3]   # TODO delegate to mason
                 token Keyword::Constant, m[4]
             end
 

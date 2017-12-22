@@ -10,7 +10,11 @@ describe Rouge::Lexers::Mason do
     it 'guesses by filename' do
       assert_guess :filename => 'foo.mas'
       assert_guess :filename => 'foo.mi'
-      assert_guess :filename => 'foo.mas'
+      assert_guess :filename => 'foo.mc'
+      assert_guess :filename => 'foo.mhtml'
+      assert_guess :filename => 'foo.mcomp'
+      assert_guess :filename => 'autohandler'
+      assert_guess :filename => 'dhandler'
     end
 
     it 'guesses by mimetype' do
