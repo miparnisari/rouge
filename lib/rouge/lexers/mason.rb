@@ -3,17 +3,17 @@
 module Rouge
     module Lexers
       class Mason < RegexLexer
-        title "Mason"
+        title 'Mason'
         desc %q(<desc for="this-lexer">Mason</desc>)
         tag 'mason'
-        filenames '*.mi', '*.mc', '*.mas', '*.mhtml', '*.mcomp', "autohandler", "dhandler"
+        filenames '*.mi', '*.mc', '*.mas', '*.mhtml', '*.mcomp', 'autohandler', 'dhandler'
         mimetypes 'text/x-mason', 'application/x-mason'
 
         def initialize(*)
             super
-            @perl = Perl.new()
-            @html = HTML.new()
-          end
+            @perl = Perl.new
+            @html = HTML.new
+        end
   
         def self.detect?(text)
           return false if text.doctype?(/[html|xml]/)
@@ -21,68 +21,124 @@ module Rouge
         end
 
         textblocks = %w(
-            doc text
+            text doc
         )
-
         perlblocks = %w(
             args flags attr init once shared perl cleanup filter
         )
-
         components = %w(
             def method
         )
   
         state :root do
 
-            ### Perl specific syntax
-
-            rule /^%(.*)$/ do |m|
-                token Operator, '%'
-                delegate @perl, m[1]
-            end
-
-            rule /^#.*?$/, Comment::Single
-
             # uninterpreted blocks
-            rule /(<%(#{textblocks.join('|')})>)([^<]*)(<\/%\2>)/ do |m|
-                token Keyword::Constant, m[1]
-                token Text, m[3]
-                token Keyword::Constant, m[4]
+            rule /(\s*)(<%(#{textblocks.join('|')})>)([^<]*)(<\/%\3>\s*)/m do |m|
+                token Keyword::Declaration, m[1]
+                token Keyword::Declaration, m[2]
+                token Comment::Single, m[4]
+                token Keyword::Declaration, m[5]
             end
 
             # perl blocks
-            rule /(<%(#{perlblocks.join('|')})>)([^<]*)(<\/%\2>)/ do |m|
-                token Keyword::Constant, m[1]
+            rule /(\s*)(<%(#{perlblocks.join('|')})>)([^<]*)(<\/%\3>\s*)/m do |m|
+                token Keyword::Declaration, m[1]
+                token Keyword::Declaration, m[2]
+                delegate @perl, m[4]
+                token Keyword::Declaration, m[5]
+            end
+
+            # start of a component
+            rule /(\s*)(<%(#{components.join('|')})[^>]*>)/ do |m|
+                token Keyword::Constant, m[2]
+                push :component
+            end
+            
+            rule // do
+              push :html
+            end
+
+        end
+
+        state :component do
+
+            # uninterpreted blocks
+            rule /(<%(#{textblocks.join('|')})>)([^<]*)(<\/%\2>\s*)/ do |m|
+                token Keyword::Declaration, m[1]
+                token Text, m[3]
+                token Keyword::Declaration, m[4]
+            end
+
+            # perl blocks
+            rule /(<%(#{perlblocks.join('|')})>)([^<]*)(<\/%\2>\s*)/ do |m|
+                token Keyword::Declaration, m[1]
                 delegate @perl, m[3]
-                token Keyword::Constant, m[4]
+                token Keyword::Declaration, m[4]
             end
 
-            # component blocks
-            rule /(<%(#{components.join('|')})[^>]*>)(.*)(<\/%\2>)/m do |m|
+            # end of component
+            rule /(<\/%(#{components.join('|')})>\s*)/ do |m|
                 token Keyword::Constant, m[1]
-                delegate @perl, m[3]   # TODO delegate to mason
-                token Keyword::Constant, m[4]
+                pop!
             end
 
-            ### Mason specific syntax
+            rule // do
+                push :html
+            end
 
-            # component calls
-            rule /(<&)(.*)(&>)/ do |m|
+        end
+
+        state :html do
+
+            # perl comment
+            rule /^(#.*\s*)/ do |m|
+                token Comment::Single, m[1]
+                pop!
+            end
+
+            # perl line
+            rule /^%(.*\s*)/ do |m|
+                token Operator, '%'
+                delegate @perl, m[1]
+                pop!
+            end
+
+            rule // do
+                push :mason_components
+            end
+
+        end
+
+        state :mason_components do
+
+          # start of component call or substitution
+          rule /(.*?)(?=<[&%]\s*)/ do |m|
+            delegate @html, m[1]
+            push :component_call
+          end
+
+          rule /(.*\s*)/ do |m|
+            delegate @html, m[1]
+            pop! 2
+          end
+        end
+
+        state :component_call do
+
+            rule /(\s*<%)(?!&>)(.+?)(%>)/m do |m|
                 token Keyword::Constant, m[1]
                 token Text, m[2]
                 token Keyword::Constant, m[3]
+                pop! 3
             end
 
-            # component substitutions
-            rule /(<%)(.*)(%>)/ do |m|
+            rule /(\s*<&)(?!&>)(.+?)(&>)/m do |m|
                 token Keyword::Constant, m[1]
                 delegate @perl, m[2]
                 token Keyword::Constant, m[3]
+                pop! 3
             end
 
-            rule /^.*$/ do
-                delegate @html
-            end
         end
       end
     end

@@ -5,7 +5,7 @@
 <%args>
     $color         # this argument is required!
     $size => 20    # default size
-    $country => undef   # this argument is optional, defalt value is 'undef'
+    $country => undef   # this argument is optional, default value is 'undef'
     @items => (1, 2, 'something else')
     %pairs => (name => "John", age => 29)
 </%args>
@@ -37,10 +37,10 @@ author => 'maria ines parnisari'
 
 # Note how each line of code begins with the mandatory %
 % foreach my $person (@people) {
-    Name: <% $person %>
+    Name: <% $person %> age: <& path/to/component &>
 % }
 
-            % this is not perl code
+            % this is not perl code. the % not the first character of the line!
 
 Here at wally world you will find all the finest accoutrements.
 
@@ -68,7 +68,7 @@ What follows is a table.
 
 # a nice PRIVATE subcomponent that renders a hyperlink
 <%def .make_a_link>
-    <a href="<% url %>"> <% text %></a>
+    <a href="<% $url %>"> <% $text %></a>
 <%args>
     $path
     %query => ()
@@ -84,13 +84,13 @@ What follows is a table.
     }
 </%init>
 <%perl>
-    <a href="<% url %>"> <% text %></a>
+    my $someothervar = 42;
 </%perl>
 </%def>
 
 <%method getPublic>
 %    my $text = "hello world";
-<b><% text %></b>
+<b><% $text %></b>
 </%method>
 
 <%text>
@@ -107,3 +107,8 @@ What follows is a table.
 # This runs at the end.
     $db->disconnect();
 </%cleanup>
+
+# Another random block of Perl code
+<%perl>
+    my $hello = "world";
+</%perl>
