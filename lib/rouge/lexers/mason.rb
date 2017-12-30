@@ -114,7 +114,7 @@ module Rouge
           # start of component call or substitution
           rule /(.*?)(?=<[&%]\s*)/ do |m|
             delegate @html, m[1]
-            push :component_call
+            push :sub_component
           end
 
           rule /(.*\s*)/ do |m|
@@ -123,8 +123,9 @@ module Rouge
           end
         end
 
-        state :component_call do
+        state :sub_component do
 
+            # component substitution: <% ... %>
             rule /(\s*<%)(?!&>)(.+?)(%>)/m do |m|
                 token Keyword::Constant, m[1]
                 token Text, m[2]
@@ -132,6 +133,7 @@ module Rouge
                 pop! 3
             end
 
+            # component call: <& ... &>
             rule /(\s*<&)(?!&>)(.+?)(&>)/m do |m|
                 token Keyword::Constant, m[1]
                 delegate @perl, m[2]
