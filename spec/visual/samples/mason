@@ -108,6 +108,23 @@ What follows is a table.
     $db->disconnect();
 </%cleanup>
 
+<!-- BEGIN HTML -->
+<style>
+    .my_css_class {
+        background-color: red;
+    }
+
+    .my_other_css_class {
+       background-color: black;
+    }
+</style>
+
+<script type="text/javascript">
+    alert('hello world');
+</script>
+
+<!-- END HTML -->
+
 # Another random block of Perl code
 <%perl>
     my $hello = "world";

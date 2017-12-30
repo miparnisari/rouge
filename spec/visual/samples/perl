@@ -224,3 +224,6 @@ sub foo {
 }
 
 
+my $moduloOperation = $totalNumber % $numColumns ? 1 : 0;
+
+my $add = $totalNumber + $numColumns ? 1 : 0;
