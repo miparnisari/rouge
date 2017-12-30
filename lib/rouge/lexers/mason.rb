@@ -33,7 +33,7 @@ module Rouge
         state :root do
 
             # uninterpreted blocks
-            rule /(\s*)(<%(#{textblocks.join('|')})>)([^<]*)(<\/%\3>\s*)/m do |m|
+            rule /(\s*)(<%(#{textblocks.join('|')})>)(.+?)(<\/%\3>\s*)/m do |m|
                 token Keyword::Declaration, m[1]
                 token Keyword::Declaration, m[2]
                 token Comment::Single, m[4]
@@ -41,7 +41,15 @@ module Rouge
             end
 
             # perl blocks
-            rule /(\s*)(<%(#{perlblocks.join('|')})>)([^<]*)(<\/%\3>\s*)/m do |m|
+            rule /(\s*)(<%(#{perlblocks.join('|')})>)(.+?)(<\/%\3>\s*)/m do |m|
+                token Keyword::Declaration, m[1]
+                token Keyword::Declaration, m[2]
+                delegate @perl, m[4]
+                token Keyword::Declaration, m[5]
+            end
+
+            # other custom blocks
+            rule /(\s*)(<%([a-zA-Z_]*)>)(.+?)(<\/%\3>\s*)/m do |m|
                 token Keyword::Declaration, m[1]
                 token Keyword::Declaration, m[2]
                 delegate @perl, m[4]
@@ -63,14 +71,14 @@ module Rouge
         state :component do
 
             # uninterpreted blocks
-            rule /(<%(#{textblocks.join('|')})>)([^<]*)(<\/%\2>\s*)/ do |m|
+            rule /(\s*<%(#{textblocks.join('|')})>)(.+?)(<\/%\2>\s*)/m do |m|
                 token Keyword::Declaration, m[1]
                 token Text, m[3]
                 token Keyword::Declaration, m[4]
             end
 
             # perl blocks
-            rule /(<%(#{perlblocks.join('|')})>)([^<]*)(<\/%\2>\s*)/ do |m|
+            rule /(\s*<%(#{perlblocks.join('|')})>)(.+?)(<\/%\2>\s*)/m do |m|
                 token Keyword::Declaration, m[1]
                 delegate @perl, m[3]
                 token Keyword::Declaration, m[4]
@@ -118,7 +126,7 @@ module Rouge
           end
 
           rule /(.*\s*)/ do |m|
-            delegate @html, m[1]
+            token Text, m[1]
             pop! 2
           end
         end
