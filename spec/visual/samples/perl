@@ -230,3 +230,9 @@ my $addOperation = $totalNumber + $myOtherVar;
 
 # regexes delimited by non-standard (non-whitespace) character
 if $filename and $filename =~ m,usr/share/doc/[^/]+/examples/,;
+
+use constant TESTING = {
+    hello => 'world',
+    mo => 'money',
+    mo => 'problems'
+}

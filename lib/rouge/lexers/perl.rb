@@ -93,12 +93,6 @@ module Rouge
         rule %r(m?/(\\\\|\\/|[^/\n])*/[msixpodualngc]*), re_tok
         rule %r(m(?=[/!\\{<\[\(@%\$])), re_tok, :balanced_regex
 
-        # Perl allows any non-whitespace character to delimit
-        # a regex when `m` is used.
-        rule %r(m(\S).*\1[msixpodualngc]*), re_tok
-        rule %r(((?<==~)|(?<=\())\s*/(\\\\|\\/|[^/])*/[msixpodualngc]*),
-          re_tok, :balanced_regex
-
         rule /\s+/, Text
         rule /(?:#{builtins.join('|')})\b/, Name::Builtin
         rule /((__(DATA|DIE|WARN)__)|(STD(IN|OUT|ERR)))\b/,
@@ -136,6 +130,12 @@ module Rouge
           Operator
         rule /[()\[\]:;,<>\/?{}]/, Punctuation
         rule(/(?=\w)/) { push :name }
+
+        # Perl allows any non-whitespace character to delimit
+        # a regex when `m` is used.
+        rule %r(m(\S).*\1[msixpodualngc]*), re_tok
+        rule %r(((?<==~)|(?<=\())\s*/(\\\\|\\/|[^/])*/[msixpodualngc]*),
+          re_tok, :balanced_regex
       end
 
       state :format do
